@@ -35,6 +35,10 @@ body::before {
   }
 }
 
+.nav-link {
+  text-transform: uppercase;
+}
+
 a {
   color: #a537fd;
   text-decoration: none;
