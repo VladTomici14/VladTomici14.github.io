@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wiki AI Chat Handover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: single reading column; numbered steps (a real sequence) with a sticky contents rail on wide screens */
+:root {
+  --bg: #f6f8f8;
+  --surface: #ffffff;
+  --fg: #17211f;
+  --muted: #56645f;
+  --line: #d9e1df;
+  --accent: #0d6b5e;
+  --accent-soft: #e2f0ed;
+  --code-bg: #eef2f1;
+  --ph-bg: #fff1cc;
+  --ph-fg: #6b4a00;
+  --warn-bg: #fff4e5;
+  --warn-line: #e8a33d;
+  --info-bg: #e8f1fb;
+  --info-line: #4a84c4;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111716; --surface: #18201f; --fg: #e3ebe9; --muted: #9aaba6; --line: #2c3836;
+    --accent: #5cc4b2; --accent-soft: #1c302c; --code-bg: #0c1211;
+    --ph-bg: #3d3112; --ph-fg: #f3d58a; --warn-bg: #2e2412; --warn-line: #d39236;
+    --info-bg: #15222f; --info-line: #6aa2de; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111716; --surface: #18201f; --fg: #e3ebe9; --muted: #9aaba6; --line: #2c3836;
+  --accent: #5cc4b2; --accent-soft: #1c302c; --code-bg: #0c1211;
+  --ph-bg: #3d3112; --ph-fg: #f3d58a; --warn-bg: #2e2412; --warn-line: #d39236;
+  --info-bg: #15222f; --info-line: #6aa2de; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  margin: 0; padding: 0 20px;
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 48px 96px; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 56px; }
+@media (max-width: 860px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 28px 64px; } nav.toc { display: none; } }
+
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13.5px; }
+nav.toc p { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+nav.toc a { color: var(--muted); text-decoration: none; display: block; line-height: 1.35; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+
+main { min-width: 0; max-width: 720px; }
+header.doc { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 8px; }
+.eyebrow { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .1em; font-size: 12.5px; color: var(--accent); margin: 0 0 8px; font-weight: 600; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(30px, 5vw, 40px); line-height: 1.1; margin: 0 0 14px; text-wrap: balance; }
+.lede { font-size: 17.5px; color: var(--fg); margin: 0 0 16px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 13.5px; color: var(--muted); margin: 0; padding: 0; list-style: none; }
+.meta b { color: var(--fg); font-weight: 500; }
+
+section { padding-top: 40px; scroll-margin-top: 16px; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 1.2; margin: 0 0 12px; display: flex; gap: 12px; align-items: baseline; text-wrap: balance; }
+h2 .n { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--accent); background: var(--accent-soft); border-radius: 4px; padding: 1px 7px; flex: none; position: relative; top: -2px; }
+h3 { font-size: 16.5px; font-weight: 600; margin: 24px 0 6px; }
+p { margin: 0 0 12px; }
+ul, ol.steps { margin: 0 0 14px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+li::marker { color: var(--muted); }
+a { color: var(--accent); }
+strong { font-weight: 600; }
+
+code { font-family: var(--font-mono); font-size: .88em; background: var(--code-bg); border-radius: 3px; padding: 1px 5px; overflow-wrap: anywhere; }
+.ph { font-family: var(--font-mono); font-size: .88em; background: var(--ph-bg); color: var(--ph-fg); border-radius: 3px; padding: 1px 5px; white-space: nowrap; }
+pre code .ph, pre .ph { font-size: 1em; padding: 0 3px; }
+
+.code { position: relative; margin: 0 0 16px; }
+.code pre { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 13.5px; line-height: 1.55; }
+.code pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
+.code .cmt { color: var(--muted); }
+.copy { position: absolute; top: 8px; right: 8px; font: 500 12px var(--font-body); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 3px 9px; cursor: pointer; }
+.copy:hover, .copy:focus-visible { color: var(--accent); border-color: var(--accent); }
+
+.note { border-left: 3px solid var(--info-line); background: var(--info-bg); padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 0 0 16px; }
+.note.warn { border-color: var(--warn-line); background: var(--warn-bg); }
+.note p:last-child, .note ul:last-child { margin-bottom: 0; }
+.note .lbl { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px; }
+
+.flow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.2fr); align-items: center; gap: 10px; margin: 8px 0 20px; font-size: 14px; }
+.flow .box { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; min-width: 0; }
+.flow .box b { display: block; font-weight: 600; }
+.flow .box span { color: var(--muted); font-size: 13px; }
+.flow .arrow { color: var(--muted); font-family: var(--font-mono); }
+.flow .stack { display: grid; gap: 8px; min-width: 0; }
+@media (max-width: 640px) { .flow { grid-template-columns: minmax(0, 1fr); } .flow .arrow { transform: rotate(90deg); justify-self: center; } }
+
+.tbl { overflow-x: auto; margin: 0 0 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font-family: var(--font-display); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; color: var(--muted); background: var(--bg); }
+td:first-child { white-space: nowrap; }
+td code { white-space: nowrap; }
+
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 0 0 16px; }
+.opt { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.opt h3 { margin: 0 0 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tag { font: 600 11px var(--font-display); text-transform: uppercase; letter-spacing: .08em; padding: 2px 7px; border-radius: 3px; background: var(--accent-soft); color: var(--accent); }
+.tag.grey { background: var(--code-bg); color: var(--muted); }
+.opt p { font-size: 14.5px; }
+.opt p:last-child { margin-bottom: 0; }
+
+.checks { list-style: none; padding: 0; }
+.checks li { position: relative; padding-left: 28px; }
+.checks li::before { content: ""; position: absolute; left: 2px; top: 5px; width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 3px; }
+
+dl.trouble { margin: 0; }
+dl.trouble dt { font-weight: 600; margin-top: 16px; }
+dl.trouble dd { margin: 4px 0 0; }
+
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Contents">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#prereq">Before you start</a></li>
+      <li><a href="#s1">1. Check the AI servers</a></li>
+      <li><a href="#s2">2. One URL for both servers</a></li>
+      <li><a href="#s3">3. Configure the plugin</a></li>
+      <li><a href="#s4">4. Build the index</a></li>
+      <li><a href="#s5">5. Chat button on every page</a></li>
+      <li><a href="#s6">6. Test it</a></li>
+      <li><a href="#trouble">Troubleshooting</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="doc">
+      <p class="eyebrow">Handover · DokuWiki aichat plugin</p>
+      <h1>Connecting the wiki AI chat to our Qwen and TEI servers</h1>
+      <p class="lede">These are the steps to turn on the AI chat in our DokuWiki, using our internal Qwen3.5-9B (vLLM) and TEI embedding servers. Vlad tested the whole setup on a local copy; what's left needs wiki admin and server access.</p>
+      <ul class="meta">
+        <li>From <b>Vlad</b></li>
+        <li>Tested <b>12 Oct 2026</b></li>
+        <li>About <b>1 hour</b> of work, plus one decision (step 2)</li>
+      </ul>
+    </header>
+
+    <section id="overview">
+      <h2>How it fits together</h2>
+      <p>The aichat plugin splits every wiki page into small pieces, turns each piece into a vector using the <strong>embedding server (TEI)</strong>, and stores them in a small SQLite database inside the wiki. When someone asks a question, the plugin finds the most relevant pieces and sends them, together with the question, to the <strong>chat model (Qwen on vLLM)</strong>, which writes the answer.</p>
+      <div class="flow" role="img" aria-label="DokuWiki sends page text to TEI for embeddings and questions plus context to vLLM for answers">
+        <div class="box"><b>DokuWiki</b><span>aichat + sqlite plugins</span></div>
+        <div class="arrow">→</div>
+        <div class="box"><b>Gateway</b><span>one base URL (step 2)</span></div>
+        <div class="arrow">→</div>
+        <div class="stack">
+          <div class="box"><b>vLLM · Qwen3.5-9B</b><span>answers questions</span></div>
+          <div class="box"><b>TEI</b><span>embeds pages and questions</span></div>
+        </div>
+      </div>
+      <p>Both servers speak the OpenAI API format, so the plugin uses its built-in <code>Generic</code> provider for both.</p>
+    </section>
+
+    <section id="prereq">
+      <h2>Before you start</h2>
+      <ul class="checks">
+        <li><strong>Wiki admin account</strong>, for Admin → Configuration Settings and the Extension Manager.</li>
+        <li><strong>Shell access to the wiki server</strong>, or someone who can run commands there. Indexing only works from the command line; the plugin has no button for it.</li>
+        <li><strong>Plugins installed:</strong> <code>aichat</code> and <code>sqlite</code> (aichat needs sqlite to store its index). Both are in the Extension Manager.</li>
+        <li><strong>The wiki server can reach both AI servers.</strong> Step 1 checks this.</li>
+      </ul>
+      <p>Throughout this page, replace the highlighted placeholders:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Placeholder</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><span class="ph">VLLM_URL</span></td><td>Qwen server base URL, ending in <code>/v1</code>: <code>https://vidaaegu…com/vllm-qwen3.5/v1</code></td></tr>
+          <tr><td><span class="ph">TEI_URL</span></td><td>Embedding server URL: <code>https://vldaaegu.vl…com/tei</code></td></tr>
+          <tr><td><span class="ph">WIKI_DIR</span></td><td>DokuWiki install folder on the server (the one containing <code>doku.php</code>)</td></tr>
+          <tr><td><span class="ph">API_KEY</span></td><td>Only if the AI servers require a token. Otherwise leave it out.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="s1">
+      <h2><span class="n">1</span>Check the AI servers from the wiki server</h2>
+      <p>Run these <strong>on the wiki server itself</strong>, not on your laptop. Both servers are internal-only, so this proves the wiki can actually reach them.</p>
+      <h3>Qwen (vLLM)</h3>
+      <div class="code"><pre><code><span class="cmt"># model name to use in step 3: the "id" value</span>
+curl -s <span class="ph">VLLM_URL</span>/models
+
+<span class="cmt"># a real answer, in the same format the plugin sends</span>
+curl -s <span class="ph">VLLM_URL</span>/chat/completions -H 'Content-Type: application/json' \
+  -d '{"model":"<span class="ph">MODEL_ID</span>","messages":[{"role":"user","content":"Say OK"}],"temperature":0}'</code></pre></div>
+      <h3>Embeddings (TEI)</h3>
+      <div class="code"><pre><code><span class="cmt"># note "model_id" and "max_input_length", both are needed in step 3</span>
+curl -s <span class="ph">TEI_URL</span>/info
+
+<span class="cmt"># OpenAI-style embeddings route, which is what the plugin calls</span>
+curl -s <span class="ph">TEI_URL</span>/v1/embeddings -H 'Content-Type: application/json' \
+  -d '{"model":"x","input":["hello wiki"]}'</code></pre></div>
+      <p>Write down: the <strong>Qwen model id</strong>, the <strong>TEI model_id</strong> and the <strong>TEI max_input_length</strong>.</p>
+      <div class="note"><span class="lbl">If a check fails</span>
+        <p>A timeout means the wiki server can't reach that host (firewall or proxy). An SSL or certificate error means the server's PHP doesn't trust our internal certificate authority. Both need fixing on the server side before going on.</p>
+      </div>
+    </section>
+
+    <section id="s2">
+      <h2><span class="n">2</span>Give the plugin one URL for both servers</h2>
+      <p>This is the one thing that needs a decision. The plugin's <code>Generic</code> provider has <strong>a single URL setting</strong>, <code>generic_apiurl</code>, used for both chat and embeddings. It calls <code>&lt;url&gt;/chat/completions</code> for answers and <code>&lt;url&gt;/embeddings</code> for embeddings. Our two servers live at different addresses, so as things stand the plugin can only reach one of them.</p>
+      <div class="options">
+        <div class="opt">
+          <h3>Option A: a combined route <span class="tag">recommended</span></h3>
+          <p>Whoever runs the reverse proxy in front of the AI servers adds one base path that sends <code>/embeddings</code> to TEI and everything else to vLLM. The plugin stays the official, unmodified version, so updates keep working.</p>
+          <p>Vlad tested exactly this locally with a small nginx container.</p>
+        </div>
+        <div class="opt">
+          <h3>Option B: a small plugin change <span class="tag grey">fallback</span></h3>
+          <p>A roughly 10-line change adds a separate URL setting for embeddings. No infrastructure work is needed, but the wiki then runs a modified plugin, and that change has to be reapplied after every plugin update unless it's accepted upstream.</p>
+          <p>Not written yet. Vlad can provide it if option A isn't possible.</p>
+        </div>
+      </div>
+      <p>For option A, the proxy rule looks like this (nginx example):</p>
+      <div class="code"><pre><code><span class="cmt"># new base URL for the wiki, e.g. https://&lt;proxy-host&gt;/wiki-ai/v1</span>
+location /wiki-ai/v1/embeddings {
+    proxy_pass <span class="ph">TEI_URL</span>/v1/embeddings;
+}
+location /wiki-ai/v1/ {
+    proxy_pass <span class="ph">VLLM_URL</span>/;
+    proxy_read_timeout 300s;    <span class="cmt"># answers can take a while</span>
+}</code></pre></div>
+      <p>Once it's in place, rerun the step 1 checks against the new address: <code>…/wiki-ai/v1/models</code> should list Qwen and <code>…/wiki-ai/v1/embeddings</code> should return a vector.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="n">3</span>Configure the plugin</h2>
+      <p>Go to <strong>Admin → Configuration Settings</strong> and scroll to the <strong>aichat</strong> section. The model fields show a dropdown of suggestions, but you can type any value. Type the <code>Generic …</code> values exactly.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Setting</th><th>Value</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>chatmodel</code></td><td><code>Generic <span class="ph">MODEL_ID</span></code></td><td>Qwen id from <code>/models</code> in step 1</td></tr>
+          <tr><td><code>rephrasemodel</code></td><td>same as chatmodel</td><td>Rewrites follow-up questions</td></tr>
+          <tr><td><code>embedmodel</code></td><td><code>Generic <span class="ph">TEI model_id</span></code></td><td>From TEI <code>/info</code>, e.g. <code>Generic BAAI/bge-m3</code></td></tr>
+          <tr><td><code>generic_apiurl</code></td><td>the combined URL from step 2</td><td>Must end in <code>/v1</code>, no trailing slash</td></tr>
+          <tr><td><code>generic_apikey</code></td><td><span class="ph">API_KEY</span> or empty</td><td>Sent as a Bearer token</td></tr>
+          <tr><td><code>storage</code></td><td><code>SQLite</code></td><td>Default; no extra server needed</td></tr>
+          <tr><td><code>chunkSize</code></td><td>about 70% of TEI <code>max_input_length</code></td><td>See below. 512 → <code>350</code>; 8192 → keep <code>1500</code></td></tr>
+          <tr><td><code>skipRegex</code></td><td><code>^sidebar$|:(playground|sandbox)(:|$)</code></td><td>Pages not to index. No slashes around it</td></tr>
+          <tr><td><code>customprompt</code></td><td>our system prompt</td><td>Vlad has the text</td></tr>
+          <tr><td><code>restrict</code></td><td>empty, or e.g. <code>@user</code></td><td>Limit who may use the chat</td></tr>
+          <tr><td><code>logging</code></td><td>on while testing</td><td>Questions and answers, in Admin → Log Viewer</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note warn"><span class="lbl">Why chunkSize matters</span>
+        <p>The plugin splits pages into chunks of <code>chunkSize</code> tokens. TEI rejects any text longer than its model's <code>max_input_length</code>. The plugin can't look that limit up for a Generic model, and it counts tokens a little differently from TEI, so keep a margin. In the local test, the default of 1500 would have failed against a 512-token model; 350 worked.</p>
+      </div>
+    </section>
+
+    <section id="s4">
+      <h2><span class="n">4</span>Build the index</h2>
+      <p>On the wiki server, from <span class="ph">WIKI_DIR</span>, as the web server user (often <code>www-data</code>) so file permissions stay correct:</p>
+      <div class="code"><pre><code>cd <span class="ph">WIKI_DIR</span>
+sudo -u www-data php bin/plugin.php aichat embed     <span class="cmt"># index all pages</span>
+sudo -u www-data php bin/plugin.php aichat info      <span class="cmt"># shows models in use and chunk count</span></code></pre></div>
+      <p>The first run takes a while on a big wiki. Later runs only process pages that changed.</p>
+      <p><strong>Keep it current.</strong> New and edited pages only reach the chat after the next <code>embed</code> run, so schedule it, for example nightly:</p>
+      <div class="code"><pre><code><span class="cmt"># crontab of www-data: every night at 02:00</span>
+0 2 * * *  cd <span class="ph">WIKI_DIR</span> &amp;&amp; php bin/plugin.php aichat embed &gt;/dev/null 2&gt;&amp;1</code></pre></div>
+      <div class="note"><span class="lbl">Full rebuild</span>
+        <p>After changing <code>embedmodel</code>, <code>chunkSize</code> or <code>skipRegex</code>, rebuild from scratch: <code>php bin/plugin.php aichat embed --clear</code>.</p>
+      </div>
+      <p>The plugin only sees pages that are in DokuWiki's own search index. If a page never shows up in chat answers, open it once in the browser or run <code>php bin/indexer.php</code>, then <code>embed</code> again.</p>
+    </section>
+
+    <section id="s5">
+      <h2><span class="n">5</span>Put the chat button on every page</h2>
+      <p>The plugin only shows the chat where its tag is placed. To get a floating chat button on every page, put the tag in the <strong>sidebar</strong> page, which the default template shows everywhere:</p>
+      <ol class="steps">
+        <li>Open <code>doku.php?id=sidebar</code>, then <em>Create this page</em> or <em>Edit</em>.</li>
+        <li>Add this line (if a sidebar already exists, add it to the existing content):</li>
+      </ol>
+      <div class="code"><pre><code>&lt;aichat button float&gt;Hi! Ask me anything about this wiki.&lt;/aichat&gt;</code></pre></div>
+      <p><code>button</code> shows a button that opens the chat, <code>float</code> pins it to the corner of the screen, and the text inside is the greeting. If the button doesn't appear, check the <strong>sidebar</strong> setting under the main DokuWiki configuration. With a different template, any page that template shows everywhere (a footer page, for example) works the same way.</p>
+    </section>
+
+    <section id="s6">
+      <h2><span class="n">6</span>Test it</h2>
+      <p>From the command line first, because it shows each stage on its own:</p>
+      <div class="code"><pre><code>php bin/plugin.php aichat similar "how do I set up the VPN"   <span class="cmt"># embeddings + search only</span>
+php bin/plugin.php aichat ask "How do I set up the VPN?"       <span class="cmt"># full answer with sources</span></code></pre></div>
+      <p>Then in the browser: open any page, click the chat button and ask about a page you know exists.</p>
+      <ul class="checks">
+        <li><code>similar</code> lists the right page with a score around 0.75 or higher</li>
+        <li><code>ask</code> returns an answer and the source page</li>
+        <li>The chat button appears on every page and answers in the browser</li>
+        <li>The question shows up in Admin → Log Viewer → aichat (if logging is on)</li>
+      </ul>
+    </section>
+
+    <section id="trouble">
+      <h2>Troubleshooting</h2>
+      <dl class="trouble">
+        <dt>The answer says "I could not find this information" but lists the right page as a source</dt>
+        <dd>Search worked; the model ignored the context. In the local test this happened because the custom prompt was too strict for a small 3B model, and removing the prompt fixed it. Qwen3.5-9B should cope, but if it happens, simplify <code>customprompt</code>.</dd>
+
+        <dt>Answers contain the model's reasoning or <code>&lt;think&gt;</code> text</dt>
+        <dd>Qwen models "think" before answering, and the plugin doesn't strip that text for the Generic provider. The vLLM server should be started with a reasoning parser (for Qwen, <code>--reasoning-parser qwen3</code>; check the model card) so the reasoning is returned separately.</dd>
+
+        <dt>Indexing fails with "input too long" / HTTP 413 or 422</dt>
+        <dd><code>chunkSize</code> is bigger than TEI accepts. Lower it, then run <code>embed --clear</code>.</dd>
+
+        <dt>Indexing or answering fails with a 404</dt>
+        <dd><code>generic_apiurl</code> is wrong. It must be the base ending in <code>/v1</code>: the plugin adds <code>/chat/completions</code> and <code>/embeddings</code> itself.</dd>
+
+        <dt>Timeouts on answers</dt>
+        <dd>Raise the proxy read timeout (see step 2). Long questions with lots of context take time on a 9B model.</dd>
+
+        <dt>Need more detail</dt>
+        <dd>Add <code>--loglevel debug</code> to any <code>aichat</code> command. <code>php bin/plugin.php aichat page -d &lt;pageid&gt;</code> shows exactly what was indexed for one page.</dd>
+      </dl>
+    </section>
+
+    <footer>
+      Tested on a local copy: DokuWiki (linuxserver image), aichat plugin from the official repository, TEI with <code>BAAI/bge-small-en-v1.5</code>, an nginx gateway as in option A, and a small local model standing in for Qwen. Questions → Vlad.
+    </footer>
+  </main>
+</div>
+
+<script>
+document.querySelectorAll('.code').forEach(function (block) {
+  var btn = document.createElement('button');
+  btn.className = 'copy'; btn.type = 'button'; btn.textContent = 'Copy';
+  btn.addEventListener('click', function () {
+    var text = block.querySelector('pre').innerText;
+    var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); };
+    try {
+      navigator.clipboard.writeText(text).then(done, function () { select(block); });
+    } catch (e) { select(block); }
+  });
+  block.appendChild(btn);
+});
+function select(block) {
+  var r = document.createRange(); r.selectNodeContents(block.querySelector('pre'));
+  var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+}
+</script>
+</body>
+</html>
