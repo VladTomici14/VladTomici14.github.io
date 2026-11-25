@@ -111,6 +111,23 @@
     \vspace{-2.4mm}
 }
 
+% Organisation header with several roles listed under it
+\newcommand{\resumeOrg}[2]{
+\vspace{0.5mm}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1} & \footnotesize{#2} \\
+    \end{tabular*}
+    \vspace{-1mm}
+}
+
+\newcommand{\resumeRole}[2]{
+    \par\vspace{0.3mm}
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textit{\footnotesize{#1}} & \textit{\footnotesize{#2}} \\
+    \end{tabular*}
+    \vspace{-2.4mm}
+}
+
 \newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-4pt}}
 
 \renewcommand{\labelitemi}{$\vcenter{\hbox{\tiny$\bullet$}}$}
@@ -229,9 +246,17 @@ Pasionat de domeniul tehnologiei, din 2016.
             \item Lucrul cu LLM-uri self-hosted, pipeline-uri Jenkins și codebase-uri existente, pentru integrarea instrumentelor AI în procesele de dezvoltare.
         \resumeItemListEnd
 
-      \resumeSubheading
+      \resumeOrg
         {{Liga AC [\href{https://ligaac.ro}{\faIcon{globe}}]}}{Timișoara, România}
-          {Coordonator Departament Tehnic}{Sep 2025 - Prezent}
+        \resumeRole{Vicepreședinte Interne}{Sep 2026 - Prezent}
+        
+        \resumeItemListStart
+            \item Parteneriate cu industria: Conectez comunitatea noastră de studenți cu industria tech, purtând discuții cu companii private pentru a obține sprijinul care face posibile proiectele noastre.
+            \item Coordonarea echipelor: Coordonez echipele de voluntari pentru ca evenimentele să se desfășoare fără probleme, de la planificare până la execuție.
+            \item Evenimente educaționale: Îi sprijin pe colegii mei în crearea unor evenimente educaționale valoroase pentru studenți.
+        \resumeItemListEnd
+
+        \resumeRole{Coordonator Departament Tehnic}{Sep 2025 - Sep 2026}
 
         \resumeItemListStart
             \item Infrastructură \& DevOps: Am administrat infrastructura Linux pe VPS, reverse proxy-uri Nginx și baze de date MariaDB pentru platforme cu trafic ridicat.
