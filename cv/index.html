@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vlad TOMICI – CV</title>
+    <meta name="description" content="Curriculum Vitae of Vlad TOMICI">
+    <link href="../assets/img/logo-vt.png" rel="icon">
+    <link href="../assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <style>
+        :root {
+            --bg: #040404;
+            --bar: #111;
+            --text: #fff;
+            --accent: #18d26e;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+            font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { display: flex; flex-direction: column; }
+        header { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 10px 16px; background: var(--bar); border-bottom: 1px solid #222; }
+        header h1 { font-size: 16px; font-weight: 600; margin: 0; }
+        header nav { display: flex; gap: 8px; flex-wrap: wrap; }
+        header a { color: var(--text); text-decoration: none; font-size: 14px; padding: 6px 12px;
+            border: 1px solid #333; border-radius: 4px; white-space: nowrap; }
+        header a:hover { border-color: var(--accent); color: var(--accent); }
+        main { flex: 1; min-height: 0; }
+        object { display: block; width: 100%; height: 100%; border: 0; }
+        .fallback { padding: 32px 16px; text-align: center; }
+        .fallback a { color: var(--accent); }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Vlad TOMICI – CV</h1>
+    <nav>
+        <a href="../">Website</a>
+        <a id="open-link" href="main-english.pdf" target="_blank" rel="noopener">Open PDF</a>
+        <a id="download-link" href="main-english.pdf" download="Vlad-Tomici-CV.pdf">Download</a>
+    </nav>
+</header>
+<main>
+    <object id="cv-pdf" data="main-english.pdf" type="application/pdf">
+        <div class="fallback">
+            <p>Your browser can't display the PDF inline.</p>
+            <p><a href="main-english.pdf">Open the CV (PDF)</a></p>
+        </div>
+    </object>
+</main>
+<script>
+    // Bust caches so visitors always get the latest committed cv/main-english.pdf
+    (function () {
+        var src = "main-english.pdf?v=" + Date.now();
+        document.getElementById("open-link").href = src;
+        document.getElementById("download-link").href = src;
+        var obj = document.getElementById("cv-pdf");
+        var fresh = obj.cloneNode(true);
+        fresh.setAttribute("data", src);
+        obj.parentNode.replaceChild(fresh, obj);
+    })();
+</script>
+</body>
+</html>
