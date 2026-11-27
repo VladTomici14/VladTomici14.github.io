@@ -9,3 +9,6 @@ cv/*.out
 cv/*.synctex.gz
 cv/*.fls
 cv/*.fdb_latexmk
+
+# Private drafts (never published)
+drafts/
